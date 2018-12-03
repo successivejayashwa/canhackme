@@ -3,14 +3,14 @@
 	define('__SITE__', [
 		'title' => 'CanHackMe',
 		'description' => 'Can you hack me?',
-		'keyword' => 'CanHack.Me, CTF, Wargame, Hacking, Security',
+		'keyword' => 'CanHackMe, CTF, Wargame, Hacking, Security',
 		'url' => 'https://canhack.me/',
 	]);
 
 	define('__AUTHOR__', [
 		'name' => 'Safflower',
-		'email' => 'fuzzer@nate.com',
-		'website' => 'http://peng.kr/',
+		'email' => 'plzdonotsay@gmail.com',
+		'website' => 'https://safflower.pw/',
 	]);
 
 	define('__IS_DEBUG__', true);

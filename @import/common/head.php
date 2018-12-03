@@ -30,7 +30,6 @@
 		<![endif]-->
 		<link rel="stylesheet" href="<?php Data::resource('/assets/css/bootstrap.min.css'); ?>">
 		<link rel="stylesheet" href="<?php Data::resource('/assets/css/font-awesome.min.css'); ?>">
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Play|Exo|Ubuntu">
 		<link rel="stylesheet" href="<?php Data::resource('/assets/css/common.css'); ?>">
 <?php for($i = 0; isset($args['css'][$i]); ++$i): ?>
 		<link rel="stylesheet" href="<?php Data::resource($args['css'][$i]); ?>">

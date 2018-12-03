@@ -8,6 +8,7 @@
 	session_start();
 
 	header('X-XSS-Protection: 1; mode=block');
+	header('Content-Security-Policy: script-src \'self\' \'unsafe-inline\';');
 
 	require __DIR__.'/config.php';
 
