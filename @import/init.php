@@ -576,6 +576,7 @@
 			global $db;
 			$stmt = $db->prepare("
 				SELECT
+					`user_no`,
 					`user_name`,
 					`user_comment`,
 					`user_score`,

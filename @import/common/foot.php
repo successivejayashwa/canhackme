@@ -13,20 +13,20 @@
 							<ul class="navbar-nav ml-auto">
 <?php if(Users::is_signed()): ?>
 								<li class="nav-item">
-									<a class="nav-link<?php if($args['active'] === 'profile'): ?> active<?php endif; ?>" href="/users/profile/<?php Data::url(strtolower(Users::get_my_user('user_name'))); ?>">My profile</a></a>
+									<a class="nav-link<?php if($args['active'] === 'profile'): ?> active<?php endif; ?>" href="/users/profile/<?php Data::url(strtolower(Users::get_my_user('user_name'))); ?>"><i class="fa fa-user-circle-o mr-1" aria-hidden="true"></i> My profile</a></a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link<?php if($args['active'] === 'settings'): ?> active<?php endif; ?>" href="/users/settings">Settings</a></a>
+									<a class="nav-link<?php if($args['active'] === 'settings'): ?> active<?php endif; ?>" href="/users/settings"><i class="fa fa-cog mr-1" aria-hidden="true"></i> Settings</a></a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="/users/sign-out?token=<?php Data::url(Users::get_signed_token()); ?>&url=<?php Data::url(Templater::get_url_path()); ?>">Sign out</a>
+									<a class="nav-link" href="/users/sign-out?token=<?php Data::url(Users::get_signed_token()); ?>&url=<?php Data::url(Templater::get_url_path()); ?>"><i class="fa fa-sign-out mr-1" aria-hidden="true"></i> Sign out</a>
 								</li>
 <?php else: ?>
 								<li class="nav-item<?php if($args['active'] === 'sign-in'): ?> active<?php endif; ?>">
-									<a class="nav-link" href="/users/sign-in">Sign in</a>
+									<a class="nav-link" href="/users/sign-in"><i class="fa fa-sign-in mr-1" aria-hidden="true"></i> Sign in</a>
 								</li>
 								<li class="nav-item<?php if($args['active'] === 'sign-up'): ?> active<?php endif; ?>">
-									<a class="nav-link" href="/users/sign-up">Sign up</a>
+									<a class="nav-link" href="/users/sign-up"><i class="fa fa-user-plus mr-1" aria-hidden="true"></i> Sign up</a>
 								</li>
 <?php endif; ?>
 							</ul>

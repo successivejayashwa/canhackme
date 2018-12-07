@@ -2,6 +2,7 @@
 	$args_head = [
 		'title' => 'Scoreboard - '.__SITE__['title'],
 		'active' => 'scoreboard',
+		'js' => ['/assets/js/chart.min.js'],
 	];
 	$args_foot = [
 		'active' => 'scoreboard',
@@ -9,6 +10,26 @@
 
 	$user_name = Users::get_my_user('user_name');
 	$ranks = Challenges::get_ranks(30);
+
+
+	$chart_max_user = 30;
+
+	$chals = [];
+	for($i = 0; $i < $chart_max_user; ++$i){
+		$chals[$i] = Challenges::get_solved_chals($ranks[$i]['user_no']);
+	}
+
+	$first_time = strtotime('2018-07-18');
+	$last_time = strtotime(date('Y-m-d', time()));
+	$time_diff = $last_time - $first_time;
+
+	$graph_max_time = $time_diff / (60 * 60 * 24);
+
+	$chart_y = [];
+	$u = $time_diff / $graph_max_time;
+	for($i = 0; $i < $graph_max_time; ++$i){
+		$chart_y[$i] = date('Y-m-d', intval($u * $i + $first_time));
+	}
 ?>
 <?php Templater::render('common/head', $args_head); ?>
 					<main>
@@ -19,6 +40,9 @@
 								Nobody signed up yet.
 							</div>
 <?php else: ?>
+							<div class="pb-3">
+								<canvas id="scoreboard-chart" width="800" height="380" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select: none;"></canvas>
+							</div>
 							<div class="table-responsive mt-3">
 							<table class="table table-hover table-striped">
 								<colgroup>
@@ -64,4 +88,40 @@
 							</div>
 						</div>
 					</main>
+					<script>
+						$(function(){ 
+							new Chart($("#scoreboard-chart"), {
+								type: 'line',
+								data: {
+									labels: [
+										<?php 	foreach($chart_y as $y): ?>"<?php Data::text($y); ?>", <?php 	endforeach; ?>
+
+									],
+									datasets: [
+<?php 	$i = 0; foreach($ranks as $rank): ?>
+										{ 
+											data: [
+<?php 		$sum_score = 0; foreach($chals[$i] as $chal): ?>
+<?php 			$sum_score += $chal['chal_score']; ?>
+												{ x: "<?php Data::text(date('Y-m-d', strtotime($chal['chal_solved_at']))); ?>", y: "<?php Data::text($sum_score); ?>" },
+<?php 		endforeach; ?>
+											],
+											label: "<?php Data::text($rank['user_name']); ?>",
+											borderColor: "#<?php Data::text(sprintf("%08x", crc32($rank['user_name']))); ?>",
+											fill: false
+										}, 
+<?php 		if(++$i >= $chart_max_user) break; ?>
+<?php 	endforeach; ?>
+									]
+								},
+								options: {
+									scales: {
+										xAxes: [{
+											display: false,
+										}],
+									},
+								},
+							});
+						});
+					</script>
 <?php Templater::render('common/foot', $args_foot); ?>
