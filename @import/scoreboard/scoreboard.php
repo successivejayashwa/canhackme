@@ -40,7 +40,7 @@
 								Nobody signed up yet.
 							</div>
 <?php else: ?>
-							<div class="pb-3">
+							<div class="pb-3 d-none d-sm-block">
 								<canvas id="scoreboard-chart" width="800" height="380" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select: none;"></canvas>
 							</div>
 							<div class="table-responsive mt-3">
