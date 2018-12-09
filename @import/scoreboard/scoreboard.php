@@ -107,7 +107,7 @@
 <?php 		endforeach; ?>
 											],
 											label: "<?php Data::text($rank['user_name']); ?>",
-											borderColor: "#<?php Data::text(sprintf("%08x", crc32($rank['user_name']))); ?>",
+											borderColor: "#<?php Data::text(sprintf("%06x", crc32($rank['user_name']))); ?>",
 											fill: false
 										}, 
 <?php 		if(++$i >= $chart_max_user) break; ?>
