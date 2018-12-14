@@ -6,7 +6,7 @@
 
 ![main](https://i.imgur.com/8UGyviq.png)
 
-It's jeopardy CTF (wargame) platform called CanHackMe.
+CanHackMe is jeopardy CTF platform.
 
 This platform tested on `Ubuntu 16.04` + `Apache 2.4` + `PHP 7.2`.
 
