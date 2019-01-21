@@ -4,7 +4,7 @@
 
 # CanHackMe
 
-![main](https://i.imgur.com/8UGyviq.png)
+![main](https://i.imgur.com/f1NP3VU.png)
 
 CanHackMe is jeopardy CTF platform.
 
