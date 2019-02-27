@@ -134,7 +134,7 @@
 											<div class="text-right">
 												<i class="fa fa-tags" aria-hidden="true"></i>
 <?php 		foreach(explode(',', $chal['chal_tags']) as $tag): ?>
-												<a href="/challenges/tag/<?php Data::url($tag); ?>" class="text-muted ml-1">#<?php Data::text($tag); ?></a>
+												<a href="/challenges/tag/<?php Data::url(strtolower($tag)); ?>" class="text-muted ml-1">#<?php Data::text($tag); ?></a>
 <?php 		endforeach; ?>
 											</div>
 										</div>
