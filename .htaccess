@@ -14,5 +14,5 @@ AddDefaultCharset utf-8
 	RewriteCond %{REQUEST_FILENAME} !-d
 	RewriteRule . /index.php [L]
 
-	RewriteRule ^\@ - [F,NC]
+	RewriteRule ^\@import - [F,NC]
 </IfModule>

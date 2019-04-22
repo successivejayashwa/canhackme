@@ -1,4 +1,6 @@
 <?php
+	version_compare(PHP_VERSION, '7.0.0', '>=') or die('Not supported PHP version');
+
 	ini_set('display_errors', 'off');
 
 	ini_set('session.name', 'session');
@@ -7,10 +9,13 @@
 	ini_set('session.sid_bits_per_character', '6');
 	session_start();
 
-	header('X-XSS-Protection: 1; mode=block');
-	header('Content-Security-Policy: script-src \'self\' \'unsafe-inline\';');
+	define('__CSP_NONCE__', base64_encode(random_bytes(20)));
 
-	require __DIR__.'/config.php';
+	header('X-Content-Type-Options: nosniff');
+	header('X-Frame-Options: deny');
+	header('X-XSS-Protection: 1; mode=block');
+	header('Content-Security-Policy: base-uri \'self\'; script-src \'nonce-'.__CSP_NONCE__.'\';');
+	require __DIR__.'/confs/common.php';
 
 	######################################################################################################################
 
@@ -21,19 +26,66 @@
 
 	date_default_timezone_set('UTC');
 
-	$do_init = !is_file(__DB_FILE__);
-	$db = new SQLite3(__DB_FILE__);
-	$db->createFunction('HASH', function($value){
+	$do_init = !is_file(__DIR__.'/confs/.common.db');
+	$db = new SQLite3(__DIR__.'/confs/.common.db');
+	$db->createFunction('HASH', function(string $value){
 		return hash('sha256', $value.__HASH_SALT__);
 	});
 	if($do_init){
-		$db->query(file_get_contents(__DIR__.'/init.sql'));
+		$db->query(file_get_contents(__DIR__.'/confs/init.sql'));
 	}
 	unset($do_init);
 
 	Templater::init();
 	Users::init();
 	Challenges::init();
+
+	######################################################################################################################
+
+	function is_valid_recaptcha_token($token): bool{
+		if(!is_string($token) || !isset($token{0})){
+			return false;
+		}
+		$url = 'https://www.google.com/recaptcha/api/siteverify';
+		$data = [
+			'secret' => __SITE__['recaptcha_secretkey'], 
+			'response' => $token,
+		];
+		$options = [
+			'http' => [
+				'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+				'method' => 'POST',
+				'content' => http_build_query($data),
+			]
+		];
+		$context = stream_context_create($options);
+		$response = file_get_contents($url, false, $context);
+		$responseKeys = json_decode($response, true);
+		return isset($responseKeys['success']) && is_bool($responseKeys['success']) ? $responseKeys['success'] : false;
+	}
+	function email_encode(string $email): string{
+		// html encode some characters (at, dot).
+		return strtr($email, ['@' => '&#64;', '.' => '&#46;']);
+	}
+
+	function get_challenge_shortcut_page_url(string $chal_name): string{
+		return '/challenges/@'.urlencode(strtolower($chal_name));
+	}
+	function get_challenge_tag_page_url(string $chal_name): string{
+		return '/challenges/tag/'.urlencode(strtolower($chal_name));
+	}
+
+	function get_user_profile_page_url(string $user_name): string{
+		return '/users/@'.urlencode(strtolower($user_name));
+	}
+	function get_user_profile_image_url(string $user_email, int $size = 64): string{
+		$token = md5($user_email);
+		return 'https://www.gravatar.com/avatar/'.$token.'?'.
+			http_build_query([
+				'd' => 'https://github.com/identicons/'.$token.'.png',
+				's' => $size,
+			]);
+	}
 
 	######################################################################################################################
 
@@ -48,21 +100,19 @@
 		public static function route(string $regex, array $methods, &$args = null){
 			return in_array($_SERVER['REQUEST_METHOD'], $methods, true) && preg_match($regex, self::get_url_path(), $args);
 		}
-		public static function render(string $file, $args = null){
+		public static function import(string $file, $args = null){
 			include __DIR__.'/'.$file.'.php';
 		}
-		public static function error(string $status = '404'){
+		public static function error(int $status = 404){
 			$_SERVER['REDIRECT_STATUS'] = $status;
-			include __DIR__.'/common/error.php';
+			include __DIR__.'/views/error/error.php';
 			die;
 		}
 		public static function redirect(string $url){
-			if(headers_sent()){
-				echo '<meta http-equiv="refresh" content="0;url=', $url, '"></meta>';
-			}else{
+			if(!headers_sent()){
 				header('Location: '.$url);
 			}
-			die;
+			die('<meta http-equiv="refresh" content="0;url='.htmlentities($url).'"></meta>');
 		}
 		public static function json(array $data){
 			if(!headers_sent()){
@@ -75,26 +125,18 @@
 	######################################################################################################################
 
 	class Data{
-		public static function text($value){
-			echo htmlentities($value, ENT_QUOTES, 'UTF-8');
-		}
-		public static function url($value){
-			echo urlencode($value);
-		}
-		public static function timestamp($value){
-			echo strtotime($value);
-		}
-		public static function email($value){
-			echo strtr($value, ['@' => '&#64;', '.' => '&#46;']);
-		}
-		public static function resource($link){
-			$url_path = parse_url($link, PHP_URL_PATH);
-			$file_path = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$url_path);
+		public static function resource(string $link){
+			$parsed_url = parse_url($link);
+
+			// If the link is external URL, return it as it is.
+			if(isset($parsed_url['scheme']) || isset($parsed_url['host'])) return $link;
+
+			$file_path = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$parsed_url['path']);
 			$url_query = $file_path !== false ? '?v='.filemtime($file_path) : '';
-			echo $url_path.$url_query;
+			return $parsed_url['path'].$url_query;
 		}
-		public static function markbb($value){
-			$value = htmlentities($value, ENT_QUOTES, 'UTF-8');
+		public static function markbb(string $value){
+			$value = htmlentities($value);
 			$value = strtr($value, ["\r" => '', "\n" => '<br>']);
 
 			$value = preg_replace('#\[b\](.*?)\[/b\]#s', '<b>$1</b>', $value);
@@ -116,11 +158,12 @@
 			$value = preg_replace('#\[mark\](.*?)\[/mark\]#s', '<mark>$1</mark>', $value);
 			$value = preg_replace('#==(.*?)==#s', '<mark>$1</mark>', $value);
 
+			$value = preg_replace('#```(.*?)```#s', '<pre><code>$1</code></pre>', $value);
+
 			$value = preg_replace('#\[code\](.*?)\[/code\]#s', '<code>$1</code>', $value);
 			$value = preg_replace('#`(.*?)`#s', '<code>$1</code>', $value);
 
 			$value = preg_replace('#\[pre\](.*?)\[/pre\]#s', '<pre>$1</pre>', $value);
-			$value = preg_replace('#```(.*?)```#s', '<pre><code>$1</code></pre>', $value);
 
 			$value = preg_replace('#\[file\](.*?)\[/file\]#s', '<a href="$1" download>$1</a>', $value);
 			$value = preg_replace('#\[file=(.*?)\](.*?)\[/file\]#s', '<a href="$1" download>$2</a>', $value);
@@ -138,11 +181,7 @@
 			$value = preg_replace('#\&lt;(.*?)\&gt;#s', '<a href="$1" target="_blank">$1</a>', $value);
 			$value = preg_replace('#\[url\](\/.*?)\[/url\]#s', '<a href="$1">$1</a>', $value);
 			$value = preg_replace('#\[url\](.*?)\[/url\]#s', '<a href="$1" target="_blank">$1</a>', $value);
-			echo $value;
-		}
-		public static function profile_image($user_email, $size = 48){
-			$token = md5($user_email);
-			echo 'https://www.gravatar.com/avatar/'.$token.'?s='.$size.'&d=https://github.com/identicons/'.$token.'.png';
+			return $value;
 		}
 	}
 
@@ -165,25 +204,26 @@
 			return self::$is_signed;
 		}
 		public static function get_my_user(string $column = '*'){
-			if(self::$is_signed === true){
-				if($column === '*'){
-					return self::$my_user;
-				}else if(isset(self::$my_user[$column])){
-					return self::$my_user[$column];
-				}else{
-					return false;
-				}
+			if(self::$is_signed !== true){
+				return false;
+			}
+			if($column === '*'){
+				return self::$my_user;
+			}else if(isset(self::$my_user[$column])){
+				return self::$my_user[$column];
 			}else{
 				return false;
 			}
 		}
-		public static function get_guest_token(){
-			return sha1($_SERVER['REMOTE_ADDR'].'|'.$_SERVER['HTTP_USER_AGENT'].'|'.__HASH_SALT__);
+		public static function get_unsigned_token(){
+			return base64_encode(sha1(json_encode([$_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT']]), true));
 		}
 		public static function get_signed_token(){
-			return isset($_SESSION['user_no']) ? sha1($_SESSION['user_no'].'|'.$_SERVER['REMOTE_ADDR'].'|'.$_SERVER['HTTP_USER_AGENT'].'|'.__HASH_SALT__) : false;
+			return isset($_SESSION['user_no']) ? 
+				base64_encode(sha1(json_encode([$_SESSION['user_no'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'], __HASH_SALT__]), true)) : 
+				false;
 		}
-		public static function get_user(string $user_name, string $column = '*', bool $is_case_sensitive = false){
+		public static function get_user_by_name(string $user_name, string $column = '*', bool $is_case_sensitive = false){
 			$where_option = $is_case_sensitive ? '' : 'COLLATE NOCASE';
 			global $db;
 			$stmt = $db->prepare("
@@ -196,7 +236,7 @@
 				LIMIT
 					1
 			");
-			$stmt->bindValue(':user_name', $user_name, SQLITE3_TEXT);
+			$stmt->bindParam(':user_name', $user_name);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$user = $res->fetchArray(SQLITE3_ASSOC);
@@ -222,7 +262,7 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':user_no', $user_no, SQLITE3_INTEGER);
+			$stmt->bindParam(':user_no', $user_no);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$user = $res->fetchArray(SQLITE3_ASSOC);
@@ -236,9 +276,26 @@
 				return false;
 			}
 		}
-		public static function get_new_users(int $count = 30){
+		public static function get_solv_count_by_user_no(int $user_no){
 			global $db;
 			$stmt = $db->prepare("
+				SELECT
+					COUNT(*) AS `solv_count`
+				FROM
+					`solvs`
+				WHERE
+					`solv_user_no`=:user_no
+			");
+			$stmt->bindParam(':user_no', $user_no);
+			$res = $stmt->execute();
+			if($res === false) return false;
+			$solv = $res->fetchArray(SQLITE3_ASSOC);
+			if($solv === false) return false;
+			return $solv['solv_count'];
+		}
+		public static function get_users(int $limit_start = 0, int $limit_end = 24){
+			global $db;
+			$stmt = $db->prepare('
 				SELECT
 					*
 				FROM
@@ -246,8 +303,10 @@
 				ORDER BY
 					`user_no` DESC
 				LIMIT
-					{$count}
-			");
+					:limit_start, :limit_end
+			');
+			$stmt->bindParam(':limit_start', $limit_start);
+			$stmt->bindParam(':limit_end', $limit_end);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$users = [];
@@ -256,6 +315,9 @@
 		}
 		public static function is_valid_user_name($user_name){
 			return is_string($user_name) && preg_match('/\A[a-zA-Z0-9_-]{5,20}\z/', $user_name);
+		}
+		public static function is_valid_user_url($user_url){
+			return is_string($user_url) && preg_match('/\A(https?\:\/\/|\/\/).+\z/i', $user_url) && filter_var($user_url, FILTER_VALIDATE_URL);
 		}
 		public static function is_valid_user_email($user_email){
 			return is_string($user_email) && filter_var($user_email, FILTER_VALIDATE_EMAIL);
@@ -278,8 +340,8 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':user_name', $user_name, SQLITE3_TEXT);
-			$stmt->bindValue(':user_no', self::get_my_user('user_no'), SQLITE3_INTEGER);
+			$stmt->bindParam(':user_name', $user_name);
+			$stmt->bindValue(':user_no', self::get_my_user('user_no'));
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$user = $res->fetchArray(SQLITE3_ASSOC);
@@ -298,8 +360,8 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
-			$stmt->bindValue(':user_no', self::get_my_user('user_no'), SQLITE3_INTEGER);
+			$stmt->bindParam(':user_email', $user_email);
+			$stmt->bindValue(':user_no', self::get_my_user('user_no'));
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$user = $res->fetchArray(SQLITE3_ASSOC);
@@ -318,8 +380,8 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':user_name', $user_name, SQLITE3_TEXT);
-			$stmt->bindValue(':user_password', $user_password, SQLITE3_TEXT);
+			$stmt->bindParam(':user_name', $user_name);
+			$stmt->bindParam(':user_password', $user_password);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$user = $res->fetchArray(SQLITE3_ASSOC);
@@ -343,10 +405,10 @@
 						:user_name, :user_email, HASH(:user_password), :user_comment, 0
 					)
 			');
-			$stmt->bindValue(':user_name', $user_name, SQLITE3_TEXT);
-			$stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
-			$stmt->bindValue(':user_password', $user_password, SQLITE3_TEXT);
-			$stmt->bindValue(':user_comment', $user_comment, SQLITE3_TEXT);
+			$stmt->bindParam(':user_name', $user_name);
+			$stmt->bindParam(':user_email', $user_email);
+			$stmt->bindParam(':user_password', $user_password);
+			$stmt->bindParam(':user_comment', $user_comment);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			return true;
@@ -381,11 +443,11 @@
 				WHERE
 					`user_no`=:user_no
 			');
-			$stmt->bindValue(':user_name', $user_name, SQLITE3_TEXT);
-			$stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
-			$stmt->bindValue(':user_password', $user_password, SQLITE3_TEXT);
-			$stmt->bindValue(':user_comment', $user_comment, SQLITE3_TEXT);
-			$stmt->bindValue(':user_no', Users::get_my_user('user_no'), SQLITE3_INTEGER);
+			$stmt->bindParam(':user_name', $user_name);
+			$stmt->bindParam(':user_email', $user_email);
+			$stmt->bindParam(':user_password', $user_password);
+			$stmt->bindParam(':user_comment', $user_comment);
+			$stmt->bindValue(':user_no', Users::get_my_user('user_no'));
 			$res = $stmt->execute();
 			if($res === false) return false;
 			self::init();
@@ -435,20 +497,22 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':chal_flag', $chal_flag, SQLITE3_TEXT);
+			$stmt->bindParam(':chal_flag', $chal_flag);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$chal = $res->fetchArray(SQLITE3_ASSOC);
 			if($chal === false) return false;
 			return $chal;
 		}
-		public static function get_solved_chals(int $user_no){
+		public static function get_solved_chals(int $user_no, bool $get_first_solver = false){
 			global $db;
+			$select = $get_first_solver ? '(SELECT `u`.`user_no` FROM `solvs`, `users` AS `u` WHERE `solv_chal_no`=`chal_no` AND `solv_user_no`=`u`.`user_no` ORDER BY `solv_no` ASC LIMIT 1) AS `chal_first_solver`,' : '0 AS `chal_first_solver`,';
 			$stmt = $db->prepare("
 				SELECT
 					`chal_name`,
 					`chal_title`,
 					`chal_score`,
+					{$select}
 					`solv_solved_at` AS `chal_solved_at`
 				FROM
 					`solvs`,
@@ -456,11 +520,11 @@
 				WHERE
 					`solv_chal_no`=`chal_no` AND `solv_user_no`=:solv_user_no
 				ORDER BY
-					`solv_solved_at` ASC,
+					`solv_no` ASC,
 					`chal_score` ASC,
 					`chal_no` ASC
 			");
-			$stmt->bindValue(':solv_user_no', $user_no, SQLITE3_INTEGER);
+			$stmt->bindParam(':solv_user_no', $user_no);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$chals = [];
@@ -479,8 +543,8 @@
 				LIMIT
 					1
 			');
-			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'), SQLITE3_INTEGER);
-			$stmt->bindValue(':solv_chal_no', $chal_no, SQLITE3_INTEGER);
+			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'));
+			$stmt->bindParam(':solv_chal_no', $chal_no);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$chal = $res->fetchArray(SQLITE3_ASSOC);
@@ -499,8 +563,8 @@
 					:solv_user_no, :solv_chal_no
 				)
 			');
-			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'), SQLITE3_INTEGER);
-			$stmt->bindValue(':solv_chal_no', $chal_no, SQLITE3_INTEGER);
+			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'));
+			$stmt->bindParam(':solv_chal_no', $chal_no);
 			$res = $stmt->execute();
 			if($res === false) return false;
 
@@ -512,11 +576,26 @@
 				WHERE
 					`user_no`=:user_no
 			');
-			$stmt->bindValue(':user_no', Users::get_my_user('user_no'), SQLITE3_INTEGER);
-			$stmt->bindValue(':score', $chal_score, SQLITE3_INTEGER);
+			$stmt->bindValue(':user_no', Users::get_my_user('user_no'));
+			$stmt->bindParam(':score', $chal_score);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			return true;
+		}
+		public static function get_chal_count_and_score(){
+			global $db;
+			$stmt = $db->prepare("
+				SELECT
+					COUNT(*) AS `count`,
+					SUM(`chal_score`) AS `score`
+				FROM
+					`chals`
+			");
+			$res = $stmt->execute();
+			if($res === false) return false;
+			$solv = $res->fetchArray(SQLITE3_ASSOC);
+			if($solv === false) return false;
+			return $solv;
 		}
 		public static function get_chals(string $chal_tag = 'all'){
 			$query_where = strcasecmp($chal_tag, 'all') ? 'AND INSTR(","||`chal_tags`||",", ",'.$chal_tag.',")' : '';
@@ -543,7 +622,7 @@
 					`chal_score` ASC,
 					`chal_no` ASC
 			");
-			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'), SQLITE3_INTEGER);
+			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'));
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$chals = [];
@@ -559,8 +638,7 @@
 					`users`
 				ORDER BY
 					`user_score` DESC,
-					(SELECT `solv_solved_at` FROM `solvs` WHERE `solv_user_no`=`user_no` ORDER BY `solv_solved_at` DESC LIMIT 1) ASC,
-					`user_signed_up_at` ASC
+					(SELECT `solv_solved_at` FROM `solvs` WHERE `solv_user_no`=`user_no` ORDER BY `solv_no` DESC LIMIT 1) ASC
 			');
 			$res = $stmt->execute();
 			if($res === false) return false;
@@ -572,33 +650,34 @@
 			}
 			return false;
 		}
-		public static function get_ranks(int $count = 30){
+		public static function get_ranks(int $limit_start = 0, int $limit_end = 30){
 			global $db;
-			$stmt = $db->prepare("
+			$stmt = $db->prepare('
 				SELECT
 					`user_no`,
 					`user_name`,
 					`user_comment`,
 					`user_score`,
-					(SELECT `solv_solved_at` FROM `solvs` WHERE `solv_user_no`=`user_no` ORDER BY `solv_solved_at` DESC LIMIT 1) AS `user_last_solved_at`
+					(SELECT `solv_solved_at` FROM `solvs` WHERE `solv_user_no`=`user_no` ORDER BY `solv_no` DESC LIMIT 1) AS `user_last_solved_at`
 				FROM
 					`users`
 				ORDER BY
 					`user_score` DESC,
-					`user_last_solved_at` ASC,
-					`user_signed_up_at` ASC
+					`user_last_solved_at` ASC
 				LIMIT
-					{$count}
-			");
+					:limit_start, :limit_end
+			');
+			$stmt->bindParam(':limit_start', $limit_start);
+			$stmt->bindParam(':limit_end', $limit_end);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$ranks = [];
 			while($rank = $res->fetchArray(SQLITE3_ASSOC)) $ranks[] = $rank;
 			return $ranks;
 		}
-		public static function get_new_solves(int $count = 30){
+		public static function get_solvs(int $limit_start = 0, int $limit_end = 30){
 			global $db;
-			$stmt = $db->prepare("
+			$stmt = $db->prepare('
 				SELECT
 					`solv_no`,
 					`user_name` AS `solv_user_name`,
@@ -615,8 +694,10 @@
 				ORDER BY
 					`solv_no` DESC
 				LIMIT
-					{$count}
-			");
+					:limit_start, :limit_end
+			');
+			$stmt->bindParam(':limit_start', $limit_start);
+			$stmt->bindParam(':limit_end', $limit_end);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$solvs = [];
@@ -637,16 +718,14 @@
 			if($chal === false) return false;
 			return $chal['chal_count'];
 		}
-		public static function get_solv_count(int $user_no = 0){
-			$query_where = $user_no > 0 ? 'WHERE `solv_user_no`="'.$user_no.'"' : '';
+		public static function get_solv_count(){
 			global $db;
-			$stmt = $db->prepare("
+			$stmt = $db->prepare('
 				SELECT
 					COUNT(*) AS `solv_count`
 				FROM
 					`solvs`
-				{$query_where}
-			");
+			');
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$solv = $res->fetchArray(SQLITE3_ASSOC);
@@ -655,10 +734,10 @@
 		}
 	}
 
-	class Notices{
-		public static function get_new_notis(int $count = 30){
+	class Notifications{
+		public static function get_notis(int $limit_start = 0, int $limit_end = 24){
 			global $db;
-			$stmt = $db->prepare("
+			$stmt = $db->prepare('
 				SELECT
 					*
 				FROM
@@ -666,14 +745,17 @@
 				ORDER BY
 					`noti_no` DESC
 				LIMIT
-					{$count}
-			");
+					:limit_start, :limit_end
+			');
+			$stmt->bindParam(':limit_start', $limit_start);
+			$stmt->bindParam(':limit_end', $limit_end);
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$notis = [];
 			while($noti = $res->fetchArray(SQLITE3_ASSOC)) $notis[] = $noti;
 			return $notis;
 		}
+
 		public static function get_noti_count(){
 			global $db;
 			$stmt = $db->prepare('
