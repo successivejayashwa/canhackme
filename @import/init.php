@@ -598,6 +598,7 @@
 			return $solv;
 		}
 		public static function get_chals(string $chal_tag = 'all'){
+			$query_column = Users::is_signed() ? 'EXISTS(SELECT 1 FROM `solvs` WHERE `solv_chal_no`=`chal_no` AND `solv_user_no`='.Users::get_my_user('user_no').' LIMIT 1)' : '0';
 			$query_where = strcasecmp($chal_tag, 'all') ? 'AND INSTR(","||`chal_tags`||",", ",'.$chal_tag.',")' : '';
 			global $db;
 			$stmt = $db->prepare("
@@ -609,7 +610,7 @@
 					`chal_tags`,
 					`chal_uploaded_at`,
 					`user_name` AS `chal_author`,
-					EXISTS(SELECT 1 FROM `solvs` WHERE `solv_chal_no`=`chal_no` AND `solv_user_no`=:solv_user_no LIMIT 1) AS `chal_is_solved`,
+					{$query_column} AS `chal_is_solved`,
 					(SELECT COUNT(*) FROM `solvs` WHERE `solv_chal_no`=`chal_no`) AS `chal_solvers`,
 					(SELECT `u`.`user_name` FROM `solvs`, `users` AS `u` WHERE `solv_chal_no`=`chal_no` AND `solv_user_no`=`u`.`user_no` ORDER BY `solv_no` ASC LIMIT 1) AS `chal_first_solver`
 				FROM
@@ -622,7 +623,6 @@
 					`chal_score` ASC,
 					`chal_no` ASC
 			");
-			$stmt->bindValue(':solv_user_no', Users::get_my_user('user_no'));
 			$res = $stmt->execute();
 			if($res === false) return false;
 			$chals = [];
