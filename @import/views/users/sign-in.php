@@ -35,12 +35,6 @@
 									<input type="password" class="form-control bg-light" id="password" name="password" tabindex="2"
 										data-toggle="tooltip" data-placement="top" title="Enter your password.">
 								</div>
-								<div class="clearfix mb-2">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input" id="remember">
-										<label class="custom-control-label" for="remember" tabindex="4">Remember name</label>
-									</div>
-								</div>
 								<div class="clearfix mb-3">
 									<div class="float-left py-2">
 										<a href="/users/sign-up" tabindex="6">Don't have an account yet?</a>
