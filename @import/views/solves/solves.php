@@ -71,7 +71,7 @@
 										<td><a class="text-dark" href="<?= get_user_profile_page_url($solv['solv_user_name']) ?>"><?= htmlentities($solv['solv_user_name']) ?></a></td>
 										<td><a class="text-dark" href="<?= get_challenge_shortcut_page_url($solv['solv_chal_name']) ?>"><?= htmlentities($solv['solv_chal_title']) ?></a></td>
 										<td class="text-center"><?= htmlentities($solv['solv_chal_score']) ?>pt</td>
-										<td><time data-timestamp="<?= htmlentities($solv['solv_solved_at']) ?>"><?= htmlentities($solv['solv_solved_at']) ?></time></td>
+										<td><time data-timestamp="<?= strtotime($solv['solv_solved_at']) ?>"><?= htmlentities($solv['solv_solved_at']) ?></time></td>
 									</tr>
 <?php 	endforeach; ?>
 								</tbody>
