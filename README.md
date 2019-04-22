@@ -4,7 +4,7 @@
 
 # CanHackMe
 
-![main](https://i.imgur.com/f1NP3VU.png)
+![main](https://i.imgur.com/xdRTHZ5.png)
 
 CanHackMe is jeopardy CTF platform.
 
@@ -17,20 +17,20 @@ This platform tested on `Ubuntu 16.04` + `Apache 2.4` + `PHP 7.2`.
 ## How to set it up?
 
 1. Install `Apache 2.4`.
-`.htaccess` file is not available with other software.
+  `.htaccess` file is not available with other software.
 
 2. Install `PHP 7`.
-Lower versions are not supported.
+  Lower versions are not supported.
 
 3. Install `php-sqlite3` and `php-mbstrings` modules.
 
 4. Set permission to access SQLite database file (default: `/@import/canhackme.db`).
 
-5. Modify `/@import/config.php` file.
-Make sure to change the hash salt (`__HASH_SALT__`) to a long random string.
-Don't make it public.
+5. Modify `/@import/conf/common.php` file.
+  Make sure to change the hash salt (`__HASH_SALT__`) to a long random string.
+  Don't make it public.
 
 6. Register an account of administrator at the website.
 
-7. You must access the mysql database directly to add notices and challenges.
+7. You must access the sqlite database directly to add notifications and challenges.
 
