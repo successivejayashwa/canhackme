@@ -1,5 +1,5 @@
 <?php
-	version_compare(PHP_VERSION, '7.0.0', '>=') or die('Not supported PHP version');
+	version_compare(PHP_VERSION, '7.3.0', '>=') or die('Not supported PHP version');
 
 	ini_set('display_errors', 'off');
 
@@ -105,7 +105,11 @@
 		}
 		public static function error(int $status = 404){
 			$_SERVER['REDIRECT_STATUS'] = $status;
-			include __DIR__.'/views/error/error.php';
+			if($_SERVER['REQUEST_METHOD'] === 'GET'){
+				self::import('views/error/error');
+			}else{
+				self::import('apis/error/error');
+			}
 			die;
 		}
 		public static function redirect(string $url){

@@ -65,7 +65,7 @@
 		<div class="container-fluid px-0">
 			<header>
 				<div class="bg-dark">
-					<nav class="navbar navbar-expand-lg navbar-dark col-lg-9 mx-auto">
+					<nav class="navbar navbar-expand-lg navbar-dark col-lg-11 mx-auto">
 						<a class="navbar-brand d-block" href="/">
 							<h3 class="mb-0">
 								<img src="<?= Data::resource('/assets/images/brand.svg') ?>" style="width:26px;height:26px;vertical-align:-10%"><span class="ml-2"><?= htmlentities(__SITE__['title']) ?></span>
@@ -77,7 +77,7 @@
 							</svg>
 						</button>
 						<div class="collapse navbar-collapse text-uppercase" id="navbar-dropdown">
-							<ul class="navbar-nav mr-auto" style="font-size: 1.1em;">
+							<ul class="navbar-nav mr-auto" style="font-size:1.1em">
 								<li class="nav-item<?= $args['active'] === 'notifications' ? ' active' : '' ?>">
 									<a class="nav-link" href="/notifications">Notifications</a>
 								</li>
@@ -125,7 +125,7 @@
 				</div>
 			</header>
 			<div class="row mx-0 bg-white">
-				<div class="col-lg-8 mx-auto px-4 py-4">
+				<div class="col-lg-10 mx-auto px-4 py-4">
 					<noscript>
 						<div class="alert alert-warning alert-dismissible" role="alert">
 							<i class="fa fa-exclamation-circle"></i><span class="ml-1"><b>Warning!</b> JavaScript is disabled in this web browser, please enable it.</span>

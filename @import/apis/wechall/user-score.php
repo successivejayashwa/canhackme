@@ -1,5 +1,5 @@
 <?php
-	if(!isset($_GET['authkey']{0}) || $_GET['authkey'] !== __WECHALL__['authkey']){
+	if(!isset($_GET['authkey']{0}) || $_GET['authkey'] !== __SITE__['wechall_authkey']){
 		Templater::error(403);
 	}
 

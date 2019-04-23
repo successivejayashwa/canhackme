@@ -8,7 +8,7 @@
 	];
 
 	# error
-	isset($_SERVER['REDIRECT_STATUS']) or $_SERVER['REDIRECT_STATUS'] = '404';
+	isset($_SERVER['REDIRECT_STATUS']) or $_SERVER['REDIRECT_STATUS'] = 404;
 	switch($_SERVER['REDIRECT_STATUS']){
 	case 403:
 		header($_SERVER['SERVER_PROTOCOL'].' 403 Forbidden');
