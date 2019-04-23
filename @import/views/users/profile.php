@@ -6,7 +6,7 @@
 	$solved_chals = Challenges::get_solved_chals($user['user_no'], true);
 
 	$chal_progress = Challenges::get_chal_count_and_score();
-	$percentage = 100 / $chal_progress['score'] * $user['user_score'];
+	$percentage = sprintf('%0.2f', 100 / $chal_progress['score'] * $user['user_score']);
 
 	$args_head = [
 		'title' => $user['user_name'].'\'s Profile - '.__SITE__['title'],
