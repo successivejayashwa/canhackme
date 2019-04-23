@@ -77,7 +77,7 @@
 							</svg>
 						</button>
 						<div class="collapse navbar-collapse text-uppercase" id="navbar-dropdown">
-							<ul class="navbar-nav mr-auto" style="font-size:1.1em">
+							<ul class="navbar-nav mr-auto">
 								<li class="nav-item<?= $args['active'] === 'notifications' ? ' active' : '' ?>">
 									<a class="nav-link" href="/notifications">
 										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Notis</span>
