@@ -65,8 +65,8 @@
 		<div class="container-fluid px-0">
 			<header>
 				<div class="bg-dark">
-					<nav class="navbar navbar-expand-lg navbar-dark col-lg-11 mx-auto">
-						<a class="navbar-brand d-block" href="/">
+					<nav class="navbar navbar-expand-md navbar-dark col-md-11 col-lg-10 col-xl-9 mx-auto">
+						<a class="navbar-brand" href="/">
 							<h3 class="mb-0">
 								<img src="<?= Data::resource('/assets/images/brand.svg') ?>" style="width:26px;height:26px;vertical-align:-10%"><span class="ml-2"><?= htmlentities(__SITE__['title']) ?></span>
 							</h3>
@@ -79,16 +79,25 @@
 						<div class="collapse navbar-collapse text-uppercase" id="navbar-dropdown">
 							<ul class="navbar-nav mr-auto" style="font-size:1.1em">
 								<li class="nav-item<?= $args['active'] === 'notifications' ? ' active' : '' ?>">
-									<a class="nav-link" href="/notifications">Notifications</a>
+									<a class="nav-link" href="/notifications">
+										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Notis</span>
+										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Notifications</span>
+									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'users' ? ' active' : '' ?>">
 									<a class="nav-link" href="/users">Users</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'challenges' ? ' active' : '' ?>">
-									<a class="nav-link" href="/challenges">Challenges</a>
+									<a class="nav-link" href="/challenges">
+										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Challs</span>
+										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Challenges</span>
+									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'scoreboard' ? ' active' : '' ?>">
-									<a class="nav-link" href="/scoreboard">Scoreboard</a>
+									<a class="nav-link" href="/scoreboard">
+										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Score</span>
+										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Scoreboard</span>
+									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'solves' ? ' active' : '' ?>">
 									<a class="nav-link" href="/solves">Solves</a>
@@ -125,7 +134,7 @@
 				</div>
 			</header>
 			<div class="row mx-0 bg-white">
-				<div class="col-lg-10 mx-auto px-4 py-4">
+				<div class="col-md-10 col-lg-9 col-xl-8 mx-auto px-4 py-4">
 					<noscript>
 						<div class="alert alert-warning alert-dismissible" role="alert">
 							<i class="fa fa-exclamation-circle"></i><span class="ml-1"><b>Warning!</b> JavaScript is disabled in this web browser, please enable it.</span>

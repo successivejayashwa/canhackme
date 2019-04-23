@@ -5,7 +5,7 @@
 			</div>
 			<footer>
 				<div class="bg-dark border-top">
-					<nav class="navbar navbar-expand-lg navbar-dark col-lg-11 mx-auto text-uppercase">
+					<nav class="navbar navbar-expand-md navbar-dark col-md-11 col-lg-10 col-xl-9 mx-auto text-uppercase">
 						<div class="navbar-text mr-auto">
 							<span class="text-light">© <a class="text-light" href="<?= htmlentities(__AUTHOR__['website']) ?>" target="_blank"><?= htmlentities(__AUTHOR__['name']) ?></a>. All rights reserved.</span>
 						</div>
