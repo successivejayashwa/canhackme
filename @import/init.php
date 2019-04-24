@@ -151,7 +151,8 @@
 			$value = preg_replace('#\+\+(.*?)\+\+#s', '<u>$1</u>', $value);
 
 			$value = preg_replace('#\[i\](.*?)\[/i\]#s', '<i>$1</i>', $value);
-			$value = preg_replace('#\*(.*?)\*#s', '<i>$1</i>', $value);
+			$value = preg_replace('#\[em\](.*?)\[/em\]#s', '<em>$1</em>', $value);
+			$value = preg_replace('#\*(.*?)\*#s', '<em>$1</em>', $value);
 
 			$value = preg_replace('#\[s\](.*?)\[/s\]#s', '<s>$1</s>', $value);
 			$value = preg_replace('#~~(.*?)~~#s', '<s>$1</s>', $value);

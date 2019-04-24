@@ -80,8 +80,8 @@
 							<ul class="navbar-nav mr-auto">
 								<li class="nav-item<?= $args['active'] === 'notifications' ? ' active' : '' ?>">
 									<a class="nav-link" href="/notifications">
-										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Notis</span>
-										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Notifications</span>
+										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Notis</span>
+										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Notifications</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'users' ? ' active' : '' ?>">
@@ -89,14 +89,14 @@
 								</li>
 								<li class="nav-item<?= $args['active'] === 'challenges' ? ' active' : '' ?>">
 									<a class="nav-link" href="/challenges">
-										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Challs</span>
-										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Challenges</span>
+										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Challs</span>
+										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Challenges</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'scoreboard' ? ' active' : '' ?>">
 									<a class="nav-link" href="/scoreboard">
-										<span class="d-none d-sm-none d-md-block d-lg-block d-xl-none">Score</span>
-										<span class="d-block d-sm-block d-md-none d-lg-none d-xl-block">Scoreboard</span>
+										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Score</span>
+										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Scoreboard</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'solves' ? ' active' : '' ?>">
