@@ -80,8 +80,8 @@
 							<ul class="navbar-nav mr-auto">
 								<li class="nav-item<?= $args['active'] === 'notifications' ? ' active' : '' ?>">
 									<a class="nav-link" href="/notifications">
-										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Notis</span>
-										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Notifications</span>
+										<span class="d-none d-sm-none d-md-block d-lg-none d-xl-none">Notis</span>
+										<span class="d-block d-sm-block d-md-none d-lg-block d-xl-block">Notifications</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'users' ? ' active' : '' ?>">
@@ -89,14 +89,14 @@
 								</li>
 								<li class="nav-item<?= $args['active'] === 'challenges' ? ' active' : '' ?>">
 									<a class="nav-link" href="/challenges">
-										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Challs</span>
-										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Challenges</span>
+										<span class="d-none d-sm-none d-md-block d-lg-none d-xl-none">Challs</span>
+										<span class="d-block d-sm-block d-md-none d-lg-block d-xl-block">Challenges</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'scoreboard' ? ' active' : '' ?>">
 									<a class="nav-link" href="/scoreboard">
-										<span class="d-none d-sm-block d-md-block d-lg-block d-xl-none">Score</span>
-										<span class="d-block d-sm-none d-md-none d-lg-none d-xl-block">Scoreboard</span>
+										<span class="d-none d-sm-none d-md-block d-lg-none d-xl-none">Score</span>
+										<span class="d-block d-sm-block d-md-none d-lg-block d-xl-block">Scoreboard</span>
 									</a>
 								</li>
 								<li class="nav-item<?= $args['active'] === 'solves' ? ' active' : '' ?>">
@@ -107,9 +107,9 @@
 								<li class="nav-item active dropdown">
 									<button type="button" class="btn btn-link nav-link dropdown-toggle" id="dropdown-right-menu-link" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 <?php if(Users::is_signed()): ?>
-										<img class="rounded" src="<?= get_user_profile_image_url(Users::get_my_user('user_email'), 24) ?>" alt="profile" style="width:24px;height:24px;"><span class="ml-2"><?= htmlentities(Users::get_my_user('user_name')) ?></span>
+										<img class="rounded float-left" src="<?= get_user_profile_image_url(Users::get_my_user('user_email'), 24) ?>" alt="profile" style="width:24px;height:24px;"><span class="ml-2 d-block d-sm-block d-md-none d-lg-none d-xl-none float-left"><?= htmlentities(Users::get_my_user('user_name')) ?></span>
 <?php else: ?>
-										<img class="rounded" src="<?= get_user_profile_image_url(Users::get_unsigned_token(), 24) ?>" alt="profile" style="width:24px;height:24px;"><span class="ml-2">Guest</span>
+										<img class="rounded" src="<?= get_user_profile_image_url(Users::get_unsigned_token(), 24) ?>" alt="profile" style="width:24px;height:24px;">
 <?php endif; ?>
 									</button>
 									<div class="dropdown-menu" aria-labelledby="dropdown-right-menu-link">
@@ -121,7 +121,7 @@
 										<div class="dropdown-divider"></div>
 										<a class="dropdown-item" href="/users/sign-out?token=<?= urlencode(Users::get_signed_token()) ?>&url=<?= urlencode(Templater::get_url_path()) ?>">Sign out</a>
 <?php else: ?>
-										<span class="dropdown-header"><i class="fa fa-exclamation-triangle mr-1" aria-hidden="true"></i> Not signed yet</span>
+										<span class="dropdown-header"><i class="fa fa-exclamation-triangle mr-1" aria-hidden="true"></i> Unsigned yet</span>
 										<div class="dropdown-divider"></div>
 										<a class="dropdown-item<?= $args['active'] === 'sign-in' ? ' active' : '' ?>" href="/users/sign-in">Sign in</a>
 										<a class="dropdown-item<?= $args['active'] === 'sign-up' ? ' active' : '' ?>" href="/users/sign-up">Sign up</a>
