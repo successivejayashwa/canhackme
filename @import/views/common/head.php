@@ -34,7 +34,7 @@
 		<meta property="og:url" content="<?= __SITE__['url'] ?>">
 		<meta property="og:description" content="<?= htmlentities(__SITE__['description']) ?>">
 		<meta property="og:site_name" content="<?= htmlentities(__SITE__['title']) ?>">
-		<meta property="og:image" content="<?= Data::resource('/assets/images/thumbnail.png') ?>">
+		<meta property="og:image" content="<?= Data::resource('/assets/images/thumbnail.png', true) ?>">
 		<meta property="og:locale" content="en_US">
 		<meta property="fb:app_id" content="<?= htmlentities(__SITE__['facebook_app_id']) ?>">
 		<meta name="twitter:card" content="summary">
@@ -42,7 +42,7 @@
 		<meta name="twitter:url" content="<?= __SITE__['url'] ?>">
 		<meta name="twitter:title" content="<?= htmlentities($args['title']) ?>">
 		<meta name="twitter:description" content="<?= htmlentities(__SITE__['description']) ?>">
-		<meta name="twitter:image" content="<?= Data::resource('/assets/images/thumbnail.png') ?>">
+		<meta name="twitter:image" content="<?= Data::resource('/assets/images/thumbnail.png', true) ?>">
 		<!--[if lt IE 9]>
 			<script src="<?= Data::resource('/assets/scripts/html5shiv.min.js') ?>" nonce="<?= htmlentities(__CSP_NONCE__) ?>"></script>
 			<script src="<?= Data::resource('/assets/scripts/respond.min.js') ?>" nonce="<?= htmlentities(__CSP_NONCE__) ?>"></script>

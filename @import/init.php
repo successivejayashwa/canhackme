@@ -129,15 +129,17 @@
 	######################################################################################################################
 
 	class Data{
-		public static function resource(string $link){
+		public static function resource(string $link, bool $is_full_url = false){
 			$parsed_url = parse_url($link);
 
 			// If the link is external URL, return it as it is.
 			if(isset($parsed_url['scheme']) || isset($parsed_url['host'])) return $link;
 
-			$file_path = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$parsed_url['path']);
+			$url_prefix = $is_full_url === true ? rtrim(__SITE__['url'], '/') : '';
+			$url_path = $parsed_url['path'];
+			$file_path = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$url_path);
 			$url_query = $file_path !== false ? '?v='.filemtime($file_path) : '';
-			return $parsed_url['path'].$url_query;
+			return $url_prefix.$url_path.$url_query;
 		}
 		public static function markbb(string $value){
 			$value = htmlentities($value);
